@@ -1,2 +1,9 @@
 import mongoose from "mongoose";
-const dbconnect = () => {};
+export const dbconnect = () => {
+  try {
+    const conn = mongoose.connect(process.env.MongoUrl);
+    console.log("Database connected");
+  } catch (error) {
+    console.log(error);
+  }
+};
