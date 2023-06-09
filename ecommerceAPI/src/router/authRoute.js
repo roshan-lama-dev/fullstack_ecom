@@ -1,10 +1,12 @@
 import express from "express";
 import {
+  blockUser,
   createUser,
   deleteSingleUser,
   getAllUser,
   getSingleUser,
   loginUser,
+  unblockUser,
   updateUser,
 } from "../controller/userCtrl.js";
 
@@ -18,7 +20,7 @@ router.get("/allusers", getAllUser);
 router.get("/:id", authMiddleware, isAdmin, getSingleUser);
 router.delete("/:id", deleteSingleUser);
 router.put("/edit-user", authMiddleware, updateUser);
-router.put("/block-user/:id", authMiddleware, isAdmin, updateUser);
-router.put("/unblock-user/:id", authMiddleware, isAdmin, updateUser);
+router.put("/block-user/:id", authMiddleware, isAdmin, blockUser);
+router.put("/unblock-user/:id", authMiddleware, isAdmin, unblockUser);
 
 export default router;

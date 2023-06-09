@@ -17,6 +17,8 @@ export const authMiddleware = asynchandler(async (req, res, next) => {
         // then forward the user infromation to next router as a req,
         const user = await userModel.findById(decode?.id);
         (req.user = user), next();
+      } else {
+        throw new Error("The token doesn not match");
       }
     } catch (error) {
       throw new Error("Not Authorized token expired, Please login again");
@@ -27,13 +29,17 @@ export const authMiddleware = asynchandler(async (req, res, next) => {
 });
 
 export const isAdmin = asynchandler(async (req, res, next) => {
-  //   console.log(req.user);
+  console.log(req.user);
   const { email } = req.user;
 
   const adminUser = await userModel.findOne({ email });
   if (adminUser.role !== "admin") {
     throw new Error("You dont have admin privlages");
+  } else {
+    next();
   }
   try {
-  } catch (error) {}
+  } catch (error) {
+    console.log(error);
+  }
 });

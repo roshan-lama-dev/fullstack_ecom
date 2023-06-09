@@ -1,6 +1,8 @@
 import { generateToke } from "../config/jwtToken.js";
+import userModel from "../model/userModel.js";
 import userSchema from "../model/userModel.js";
 import asyncHandler from "express-async-handler";
+import { validateMongoId } from "../utils/validateMongodbId.js";
 
 // create new User
 export const createUser = asyncHandler(async (req, res) => {
@@ -50,6 +52,7 @@ export const getAllUser = asyncHandler(async (req, res) => {
 // get a single user
 export const getSingleUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
+  validateMongoId(id);
   console.log(id);
   try {
     const getAUser = await userSchema.findById(id);
@@ -65,6 +68,7 @@ export const getSingleUser = asyncHandler(async (req, res) => {
 // delete a single user
 export const deleteSingleUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
+  validateMongoId(id);
   console.log(id);
   try {
     const deleteSingleUser = await userSchema.findByIdAndDelete(id);
@@ -80,7 +84,10 @@ export const deleteSingleUser = asyncHandler(async (req, res) => {
 
 // Update
 export const updateUser = asyncHandler(async (req, res) => {
-  console.log(req.user);
+  const { id } = req.user;
+
+  // this is the extra layer of authentication that authenticates the id
+  validateMongoId(id);
 
   try {
     const updateUser = await userSchema.findByIdAndUpdate(
@@ -105,5 +112,48 @@ export const updateUser = asyncHandler(async (req, res) => {
   }
 });
 
-export const blockUser = asyncHandler(async (req, res) => {});
-export const unblockUser = asyncHandler(async (req, res) => {});
+// block the user
+export const blockUser = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  validateMongoId(id);
+  try {
+    const block = await userModel.findByIdAndUpdate(
+      id,
+
+      {
+        isBlocked: true,
+      },
+      { new: true }
+    );
+
+    // console.log(block);
+
+    res.json({
+      message: "The user account is blocked",
+    });
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
+// unblock the user
+export const unblockUser = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  validateMongoId(id);
+  try {
+    const unblock = await userModel.findByIdAndUpdate(
+      id,
+      {
+        isBlocked: false,
+      },
+      {
+        new: true,
+      }
+    );
+    res.json({
+      message: "The user is activated",
+    });
+  } catch (error) {
+    throw new Error(errror);
+  }
+});
