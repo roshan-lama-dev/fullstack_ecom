@@ -3,6 +3,7 @@ import userModel from "../model/userModel.js";
 import userSchema from "../model/userModel.js";
 import asyncHandler from "express-async-handler";
 import { validateMongoId } from "../utils/validateMongodbId.js";
+import { generateRefreshToken } from "../config/refreshToken.js";
 
 // create new User
 export const createUser = asyncHandler(async (req, res) => {
@@ -25,6 +26,19 @@ export const loginUser = asyncHandler(async (req, res) => {
 
   const findUser = await userSchema.findOne({ email });
   if (findUser && (await findUser.isPasswordMatched(password))) {
+    const refreshToken = await generateRefreshToken(findUser?.id);
+    const updateUser = await userModel.findByIdAndUpdate(
+      findUser.id,
+      {
+        refreshToken: refreshToken,
+      },
+      { new: true }
+    );
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      maxAge: 72 * 60 * 60 * 1000,
+    });
     res.json({
       _id: findUser._id,
       firtName: findUser?.firstName,
@@ -37,6 +51,13 @@ export const loginUser = asyncHandler(async (req, res) => {
     throw new Error("Invalid Credentials");
   }
   console.log(email, password);
+});
+
+// handle refresh Token
+
+export const handleRefreshToken = asyncHandler(async (req, res) => {
+  // const cookie = req.cookies;
+  console.log(req.cookies);
 });
 
 // get all user
@@ -154,6 +175,6 @@ export const unblockUser = asyncHandler(async (req, res) => {
       message: "The user is activated",
     });
   } catch (error) {
-    throw new Error(errror);
+    throw new Error(error);
   }
 });

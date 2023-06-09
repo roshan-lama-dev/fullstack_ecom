@@ -3,6 +3,7 @@ import cors from "cors";
 import morgan from "morgan";
 const app = express();
 import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
 import { dbconnect } from "./src/config/dbConnect.js";
 
 import authRouter from "./src/router/authRoute.js";
@@ -14,6 +15,7 @@ const PORT = process.env.PORT || 4000;
 app.use(express.json());
 app.use(cors());
 app.use(morgan("tiny"));
+app.use(cookieParser());
 
 // app.use("/", (req, res) => {
 //   res.send("Hello");

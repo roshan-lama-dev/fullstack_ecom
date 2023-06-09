@@ -5,6 +5,7 @@ import {
   deleteSingleUser,
   getAllUser,
   getSingleUser,
+  handleRefreshToken,
   loginUser,
   unblockUser,
   updateUser,
@@ -17,6 +18,8 @@ const router = express.Router();
 router.post("/register", createUser);
 router.post("/login", loginUser);
 router.get("/allusers", getAllUser);
+router.get("/refresh", handleRefreshToken);
+
 router.get("/:id", authMiddleware, isAdmin, getSingleUser);
 router.delete("/:id", deleteSingleUser);
 router.put("/edit-user", authMiddleware, updateUser);
