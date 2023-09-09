@@ -4,6 +4,7 @@ import userSchema from "../model/userModel.js";
 import asyncHandler from "express-async-handler";
 import { validateMongoId } from "../utils/validateMongodbId.js";
 import { generateRefreshToken } from "../config/refreshToken.js";
+import jwt from "jsonwebtoken";
 
 // create new User
 export const createUser = asyncHandler(async (req, res) => {
@@ -56,8 +57,20 @@ export const loginUser = asyncHandler(async (req, res) => {
 // handle refresh Token
 
 export const handleRefreshToken = asyncHandler(async (req, res) => {
-  // const cookie = req.cookies;
-  console.log(req.cookies);
+  const cookie = req.cookies;
+  // console.log(req.cookies);
+  if (!cookie?.refreshToken) throw new Error("No refresh token in Cookies");
+  const refreshToken = cookie.refreshToken;
+  console.log(refreshToken);
+  const user = await userModel.findOne({ refreshToken });
+  if (!user) throw new Error("No refresh token present in db or not matched");
+  jwt.verify(refreshToken, process.env.JWT_SECRET, (err, decoded) => {
+    if (err || user.id !== decoded?.id) {
+      throw new Error("There is something wrong with the refresh token");
+    }
+    const accessToken = generateToke(user?.id);
+    res.json({ accessToken });
+  });
 });
 
 // get all user
@@ -177,4 +190,30 @@ export const unblockUser = asyncHandler(async (req, res) => {
   } catch (error) {
     throw new Error(error);
   }
+});
+
+// logout the user
+
+export const logout = asyncHandler(async (req, res) => {
+  const cookie = req.cookies;
+  if (!cookie?.refreshToken) throw new Error("No refresh token in the cookies");
+  const refreshToken = cookie.refreshToken;
+  const user = await userModel.findOne({ refreshToken });
+  // if there is no user with the refresh token
+  if (!user) {
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: true,
+    });
+    return res.status(204);
+  }
+  await userModel.findOneAndUpdate(refreshToken, {
+    refreshToken: "",
+  });
+
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: true,
+  });
+  return res.status(204);
 });
